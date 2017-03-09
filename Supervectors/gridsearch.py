@@ -27,9 +27,9 @@ supervecPath = os.path.join(targePath, featureset, "supervectors")
 scoresPath = os.path.join(targePath, featureset, "score")
 snoreClassPath=os.path.join(targePath, featureset, "score");#used for save best c-best gamma-best nmix so that extract_supervector_test.py and test.py can read it
 
-sys.stdout = open(os.path.join(scoresPath,'gridsearch.txt'), 'w')   #log to a file
+#sys.stdout = open(os.path.join(scoresPath,'gridsearch.txt'), 'w')   #log to a file
 print "experiment: "+targePath; #to have the reference to experiments in text files
-sys.stderr = open(os.path.join(scoresPath,'gridsearch_err.txt'), 'w')   #log to a file
+#sys.stderr = open(os.path.join(scoresPath,'gridsearch_err.txt'), 'w')   #log to a file
 
 
 #variables inizialization
