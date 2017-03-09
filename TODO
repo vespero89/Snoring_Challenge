@@ -1,0 +1,12 @@
+functionals + ELM al posto di SVM
+functionals con supervectors + ELM/SVM
+oppure CNN-1D con functionals (con supervectors) in ingresso
+
+[15:47:17] Emanuele Principi: considera che comunque i supervector vengono calcolati a partire dagli mfcc
+[15:47:28] Emanuele Principi: la procedura base è questa
+[15:47:38] Emanuele Principi: 1) train GMM con tutto il training set (mfcc)
+[15:48:24] Emanuele Principi: 2) per ogni file, GMM.map_adapt(mfccs del file)
+[15:48:49] Emanuele Principi: 3) supervector=vettore dei valori medi della gmm adattata
+[15:49:44] Emanuele Principi: il supervector ha dimensione (nr componenti della gmm) * (nr elemenenti vettore di feature)
+
+extract supervector-----gridsearch----->extract supervector test------>test
