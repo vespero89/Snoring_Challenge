@@ -1,13 +1,12 @@
-import numpy as np;
-import ANN_classifier as ann
-from scipy.stats import zscore
-from sklearn.metrics import recall_score, accuracy_score, confusion_matrix, classification_report
-import os;
 import sys
-import dataset_manupulation as dm
-import utils;
+sys.path.append('..')
+import numpy as np
+import ANN_classifier as ann
+import os
+import sys
+import utils.dataset_manupulation as dm
+import utils.utils
 import argparse
-
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
@@ -76,9 +75,9 @@ supervecPath = os.path.join(targePath, featureset, "supervectors")
 scoresPath = os.path.join(targePath, featureset, "score")
 snoreClassFile = os.path.join(targePath, featureset, "score","RandMLPSearch.txt");#used for save best c-best gamma-best nmix so that extract_supervector_test.py and test.py can read it
 
-#sys.stdout = open(os.path.join(scoresPath,'gridsearch_ANN.txt'), 'w')   #log to a file
+sys.stdout = open(os.path.join(scoresPath,'gridsearch_ANN.txt'), 'w')   #log to a file
 print "experiment: "+targePath; #to have the reference to experiments in text files
-#sys.stderr = open(os.path.join(scoresPath,'gridsearch_err_ANN.txt'), 'w')   #log to a file
+sys.stderr = open(os.path.join(scoresPath,'gridsearch_err_ANN.txt'), 'w')   #log to a file
 
 tag = arguments
 tag = tag[1::2]
@@ -89,8 +88,6 @@ with open(snoreClassFile , 'a+') as f:
 
 #variables inizialization
 nFolds = 1;
-#C_range = 2.0 ** np.arange(-5, 15+2, 2);    # libsvm range
-#gamma_range = 2.0 ** np.arange(-15, 3+2, 2); # libsvm range
 mixtures = 2**np.arange(0, 7, 1);
 
 scores      = np.zeros((mixtures.shape[0], nFolds));
@@ -131,7 +128,7 @@ for m in mixtures:
             trainFeatures = utils.readfeatures(curSupervecSubPath, y); #contiene tutte le features della lista
             mean = np.mean(trainFeatures)
             std = np.std(trainFeatures)
-            trainFeatures =((trainFeatures - mean) / std)
+            trainFeatures = ((trainFeatures - mean) / std)
 
             trainClassLabels = y_train
 
@@ -159,8 +156,6 @@ for m in mixtures:
 
             # TODO LOAD ONLY BEST MODEL
             output = net.class_predictions(devFeatures, MODEL_PATH)
-            #out_net_filename = os.path.join(SCORES_PATH, 'network_preds.csv')
-            #np.savetxt(out_net_filename, output, delimiter=';')
 
             A, UAR, ConfMatrix, class_pred = net.compute_score(output, y_devel_lab)
             scores[mIdx] = UAR

@@ -1,3 +1,5 @@
+import sys
+sys.path.append('..')
 import numpy as np;
 from sklearn.svm import SVC;
 import sklearn.preprocessing as preprocessing;
@@ -5,13 +7,13 @@ from sklearn.externals import joblib;
 from sklearn.metrics import recall_score, accuracy_score, confusion_matrix, classification_report
 import os;
 import sys
-import dataset_manupulation as dm
-import utils;
+import utils.dataset_manupulation as dm
+import utils.utils
 
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'LOGMEL'
+featureset = 'FBANK_E_D'
 filetype = 'htk'
 
 #path setup

@@ -9,7 +9,6 @@ import os
 import numpy as np
 import csv
 from os import path
-from keras import backend as K
 import keras.utils.np_utils as nputils
 import htkutils
 
@@ -61,35 +60,6 @@ def load_ComParE2017(featuresPath, filetype):
                 i+=1
     return snoring
 
-
-# def load_ComParE2017_HTK(featuresPath):
-#     '''
-#     Carica tutto il dataset (spettri) in una lista di elementi [filename , matrix ]
-#     '''
-#     print("Loading ComParE2017_Snoring dataset");
-#     snoring=list()
-#     for root, dirnames, filenames in os.walk(featuresPath):
-#         i=0;
-#         for file in filenames:
-#             num_lines = sum(1 for line in open(os.path.join(featuresPath,file)))
-#             with open(os.path.join(featuresPath,file), 'r') as f:
-#                 line = f.readline()
-#                 line = line.rstrip('\n')
-#                 line = line.split(',')
-#                 line = [float(s) for s in line]
-#                 matrix = np.zeros((num_lines, len(line)))
-#                 startIndex = 0
-#                 for line in f:
-#                     line = line.rstrip('\n')
-#                     line = line.split(',')
-#                     line = [float(s) for s in line]
-#                     matrix[startIndex, :] = line
-#                     startIndex += 1
-#             #matrix = np.asarray(matrix)
-#             data=[file,matrix]
-#             snoring.append(data)
-#             i+=1
-#     return snoring
 
 def awgn_padding_set( set_to_pad, dim_pad, loc=0.0, scale=1.0):
     print("awgn_padding_set")

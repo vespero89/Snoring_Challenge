@@ -6,11 +6,12 @@ Created on Thu Jan 19 15:11:09 2017
 @author: buckler
 """
 import numpy as np
-import hashlib
+import sys
+sys.path.append('..')
 
 np.random.seed(888)#for experiment repetibility
 import CNN_classifier as cnn
-import dataset_manupulation as dm
+import utils.dataset_manupulation as dm
 from os import path, makedirs
 import argparse
 from datetime import datetime
@@ -104,8 +105,8 @@ args.m_pool = nPKS
 args.dense_layers_inputs = nLls
 
 #TODO ADD ROOTDIR PARAM
-root_dir = path.realpath('../')
-RESULTS_DIR = 'CNN_snoring/experiments'
+root_dir = os.path.realpath('/media/fabio/DATA/Work/Snoring/Snore_dist')
+RESULTS_DIR = 'CNN_class'
 RESULTS_DIR = path.join(root_dir, RESULTS_DIR)
 if not path.exists(RESULTS_DIR):
     makedirs(RESULTS_DIR)
@@ -116,7 +117,6 @@ date_key = datetime.strftime(datetime.now(), '%d-%m-%Y_time_%H:%M:%S')
 fold_name = date_key
 
 print ("Experiment started at:" + date_key)
-#config_name = 'k2,2,2,2_p3,3,3,3'
 ####Update entry on experiments report file####
 
 tag = arguments
