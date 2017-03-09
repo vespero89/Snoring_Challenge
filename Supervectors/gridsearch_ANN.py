@@ -5,10 +5,11 @@ import ANN_classifier as ann
 import os
 import sys
 import utils.dataset_manupulation as dm
-import utils.utils
+import utils.utils as utl
 import argparse
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
+
 
 parser = argparse.ArgumentParser(description="ComParE2017 Snoring Classification")
 
@@ -44,6 +45,7 @@ parser.add_argument("-l", "--loss", dest = "loss", default="categorical_crossent
 
 args = parser.parse_args()
 
+
 if (args.config_filename is not None):
     with open(args.config_filename, 'r') as f:
         lines = f.readlines()
@@ -59,12 +61,14 @@ if (args.config_filename is not None):
     args = parser.parse_args(namespace=args)
     # special.default values
 
+featureset = args.featureset
+filetype = 'htk'
+
 tmp = ''.join(args.dense_layers_inputs)
 sls = tmp.split(',')
 nLls = [int(s) for s in sls]
 args.dense_layers_inputs = nLls
 
-featureset = "MFCC"
 #path setup
 root_dir = os.path.realpath('/media/fabio/DATA/Work/Snoring/Snore_dist')
 targePath = os.path.join(root_dir, 'gmmUbmSvm','snoring_class')
@@ -94,7 +98,7 @@ scores      = np.zeros((mixtures.shape[0], nFolds));
 mIdx = 0;
 
 #LOAD DATASET
-snoring_dataset = dm.load_ComParE2017(featPath)  # load dataset
+snoring_dataset = dm.load_ComParE2017(featPath, filetype)  # load dataset
 trainset, develset, testset = dm.split_ComParE2017_simple(snoring_dataset)  # creo i trainset per calcolare media e varianza per poter normalizzare
 labels = dm.label_loading(os.path.join(root_dir,'lab','ComParE2017_Snore.tsv'))
 trainset_l, develset_l, _ = dm.split_ComParE2017_simple(labels)
@@ -125,14 +129,14 @@ for m in mixtures:
             print("Subfold: " + str(sf));
             sys.stdout.flush()
             curSupervecSubPath = os.path.join(curSupervecPath, str(m));
-            trainFeatures = utils.readfeatures(curSupervecSubPath, y); #contiene tutte le features della lista
+            trainFeatures = utl.readfeatures(curSupervecSubPath, y); #contiene tutte le features della lista
             mean = np.mean(trainFeatures)
             std = np.std(trainFeatures)
             trainFeatures = ((trainFeatures - mean) / std)
 
             trainClassLabels = y_train
 
-            devFeatures = utils.readfeatures(curSupervecSubPath, yd);    #contiene tutte le features della lista
+            devFeatures = utl.readfeatures(curSupervecSubPath, yd);    #contiene tutte le features della lista
             devFeatures = ((devFeatures - mean) / std)
             devClassLabels = y_devel
 
@@ -162,14 +166,12 @@ for m in mixtures:
 
     mIdx += 1;
 
-
-
 mIdx = 0;
 print("\n**** Results ****\n");
 for score in scores:
-    print(str(mixtures[mIdx]) + " " + str(score)); 
+    print(str(mixtures[mIdx]) + " " + str(score));
     mIdx += 1;
-    
+
 idx_max_score = scores.argmax();
 print "best vale of AUC for " + str(mixtures[idx_max_score]) +" gaussian : "+ str(scores[idx_max_score]);
 
