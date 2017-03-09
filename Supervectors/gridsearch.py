@@ -13,8 +13,8 @@ import utils.utils as utl
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'PNCC'
-filetype = 'htk'
+featureset = 'logmel'
+filetype = 'npy'
 
 #path setup
 root_dir = os.path.realpath('/media/fabio/DATA/Work/Snoring/Snore_dist')
@@ -136,7 +136,7 @@ mIdx = 0
 
 sys.stdout = open(snoreClassPath, 'w')
 print "Featureset = " + featureset
-print("\n**** Results ****\n")
+print("**** Results ****")
 print "N-GAUSS;UAR"
 for score in scoresAvg:
     print(str(mixtures[mIdx]) + ";" + str(score))
