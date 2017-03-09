@@ -16,7 +16,7 @@ import utils.dataset_manupulation as dm
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'FBANK_E_D'
+featureset = 'PNCC'
 filetype = 'htk'
 
 
