@@ -143,6 +143,9 @@ for m in mixtures:
             MODEL_PATH = os.path.join(curSupervecSubPath,'ann')
             if not os.path.exists(MODEL_PATH):
                 os.makedirs(MODEL_PATH)
+            else:
+                os.remove(os.path.join(MODEL_PATH,'best_ann.h5'))
+                os.remove(os.path.join(MODEL_PATH, 'training.log'))
 
             # TODO SCALE INPUT DATA
             input_shape = trainFeatures.shape
