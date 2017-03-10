@@ -13,7 +13,7 @@ import utils.utils as utl
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'LOGMEL_D'
+featureset = 'LOGMEL'
 filetype = 'htk'
 
 #path setup
