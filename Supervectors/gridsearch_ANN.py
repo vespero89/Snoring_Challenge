@@ -79,9 +79,9 @@ supervecPath = os.path.join(targePath, featureset, "supervectors")
 scoresPath = os.path.join(targePath, featureset, "score")
 snoreClassFile = os.path.join(targePath, featureset, "score","RandMLPSearch.txt");#used for save best c-best gamma-best nmix so that extract_supervector_test.py and test.py can read it
 
-#sys.stdout = open(os.path.join(scoresPath,'gridsearch_ANN.txt'), 'w')   #log to a file
+sys.stdout = open(os.path.join(scoresPath,'gridsearch_ANN.txt'), 'w')   #log to a file
 print "experiment: "+targePath; #to have the reference to experiments in text files
-#sys.stderr = open(os.path.join(scoresPath,'gridsearch_err_ANN.txt'), 'w')   #log to a file
+sys.stderr = open(os.path.join(scoresPath,'gridsearch_err_ANN.txt'), 'w')   #log to a file
 
 tag = arguments
 tag = tag[1::2]
@@ -143,7 +143,7 @@ for m in mixtures:
             MODEL_PATH = os.path.join(curSupervecSubPath,'ann')
             if not os.path.exists(MODEL_PATH):
                 os.makedirs(MODEL_PATH)
-            else:
+            elif os.path.exists(os.path.join(MODEL_PATH,'best_ann.h5')):
                 os.remove(os.path.join(MODEL_PATH,'best_ann.h5'))
                 os.remove(os.path.join(MODEL_PATH, 'training.log'))
 
