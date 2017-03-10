@@ -1,6 +1,7 @@
 import sys
 sys.path.append('..')
 import numpy as np
+np.random.seed(888)#for experiment repetibility
 import ANN_classifier as ann
 import os
 import sys
@@ -77,7 +78,7 @@ featPath = os.path.join(root_dir, 'dataset', featureset)
 
 supervecPath = os.path.join(targePath, featureset, "supervectors")
 scoresPath = os.path.join(targePath, featureset, "score")
-snoreClassFile = os.path.join(targePath, featureset, "score","RandMLPSearch.txt");#used for save best c-best gamma-best nmix so that extract_supervector_test.py and test.py can read it
+snoreClassFile = os.path.join(targePath, featureset, "score","RandMLPSearch2.txt");#used for save best c-best gamma-best nmix so that extract_supervector_test.py and test.py can read it
 
 #sys.stdout = open(os.path.join(scoresPath,'gridsearch_ANN.txt'), 'w')   #log to a file
 print "experiment: "+targePath; #to have the reference to experiments in text files

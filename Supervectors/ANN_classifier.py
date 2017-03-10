@@ -72,7 +72,7 @@ class Classifier():
         
     def model_fit(self, x_train, y_train, path, params, x_test=None, y_test=None):
         print("model_fit")
-        model_name = os.path.join(path, 'best_cnn.h5')
+        model_name = os.path.join(path, 'best_ann.h5')
         logfile = os.path.join(path, 'training.log')
         if not self._fit_net:
             #if i want to load from disk the model

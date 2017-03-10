@@ -5,7 +5,7 @@ from sklearn.svm import SVC
 import sklearn.preprocessing as preprocessing
 from sklearn.externals import joblib
 from sklearn.metrics import recall_score, accuracy_score, confusion_matrix, classification_report
-import os;
+import os
 import sys
 import utils.dataset_manupulation as dm
 import utils.utils as utl
