@@ -9,57 +9,26 @@ import os
 import numpy as np
 import csv
 from os import path
+from keras import backend as K
 import keras.utils.np_utils as nputils
-import htkutils
 
-def load_ComParE2017(featuresPath, filetype):
+def load_ComParE2017(spectrogramsPath):
     '''
     Carica tutto il dataset (spettri) in una lista di elementi [filename , matrix ]
     '''
     print("Loading ComParE2017_Snoring dataset");
     snoring=list()
-    for root, dirnames, filenames in os.walk(featuresPath):
+    for root, dirnames, filenames in os.walk(spectrogramsPath):
         i=0;
-        if (filetype == 'csv'):
-            for file in filenames:
-                num_lines = sum(1 for line in open(os.path.join(featuresPath, file)))
-                with open(os.path.join(featuresPath, file), 'r') as f:
-                    line = f.readline()
-                    line = line.rstrip('\n')
-                    line = line.split(',')
-                    line = [float(s) for s in line]
-                    matrix = np.zeros((num_lines, len(line)))
-                    startIndex = 0
-                    for line in f:
-                        line = line.rstrip('\n')
-                        line = line.split(',')
-                        line = [float(s) for s in line]
-                        matrix[startIndex, :] = line
-                        startIndex += 1
-                # matrix = np.asarray(matrix)
-                data = [file, matrix]
-                snoring.append(data)
-                i += 1
-        elif (filetype == 'npy'):
-            for file in filenames:
-                matrix=np.load(os.path.join(root,file))
-                if matrix.ndim != 2:
-                    shape = matrix.shape[1:]
-                    matrix = matrix.reshape(shape)
-                data=[file,matrix]
-                snoring.append(data)
-                i+=1
-        elif (filetype == 'htk'):
-            for file in filenames:
-                matrix=htkutils.readhtk(os.path.join(root,file))
-                if matrix.ndim != 2:
-                    shape = matrix.shape[1:]
-                    matrix = matrix.reshape(shape)
-                data=[file,matrix]
-                snoring.append(data)
-                i+=1
+        for file in filenames:
+            matrix=np.load(os.path.join(root,file))
+            if matrix.ndim != 2:
+                shape = matrix.shape[1:]
+                matrix = matrix.reshape(shape)
+            data=[file,matrix]
+            snoring.append(data)
+            i+=1
     return snoring
-
 
 def awgn_padding_set( set_to_pad, dim_pad, loc=0.0, scale=1.0):
     print("awgn_padding_set")
@@ -182,6 +151,53 @@ def label_loading(label_file=None):
             rownum += 1
 
         return labels
+
+def data_bin_organize(label_set,namelist):
+    y_set = []
+    for i in range(len(namelist)):
+        a = path.splitext(namelist[i])[0]
+        for j in range(len(label_set)):
+            b = path.splitext(label_set[j][0])[0]
+            if a == b:
+                y_set.append(label_set[j][1])
+
+    y_set_int = []
+    for k in y_set:
+        if k == 'V':
+            i = 0
+        else:
+            i = 1
+        y_set_int = np.append(y_set_int, i)
+
+    return y_set_int
+
+def data_cnn_organize(label_set,namelist,data_set):
+    y_set = []
+    for i in range(len(namelist)):
+        a = path.splitext(namelist[i])[0]
+        for j in range(len(label_set)):
+            b = path.splitext(label_set[j][0])[0]
+            if a == b:
+                y_set.append(label_set[j][1])
+
+    y_set_int = []
+    x_set = data_set[:]
+    j=0
+    for k in y_set:
+        if k == 'V':
+            del x_set[j]
+            continue
+        elif k == 'O':
+            i = 0
+        elif k == 'T':
+            i = 1
+        elif k == 'E':
+            i = 2
+        y_set_int.append(i)
+        j+=1
+
+    y_set_cat= nputils.to_categorical(y_set_int,nb_classes=3)
+    return x_set, y_set_cat, y_set_int
 
 def label_organize(label_set,namelist):
     y_set = []

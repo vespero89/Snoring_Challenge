@@ -16,7 +16,7 @@ import utils.dataset_manupulation as dm
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'FBANK_E_D'
+featureset = 'LOGMEL_D'
 filetype = 'htk'
 
 
@@ -120,9 +120,12 @@ def process_subfold(sf,fold):
                 feat = seq[1].transpose()
             else:
                 feat = seq[1]
-            gmmMap.map_adapt(feat);                                         #adatta l'ubm ad una feature
+            gmmMap.map_adapt(feat);
+            #adatta l'ubm ad una feature
+            #means_and_covars = np.hstack((gmmMap.means_,gmmMap.covars_))
             svFilePath = os.path.join(curSupervecSubPath, os.path.basename(seq[0]));
             joblib.dump(gmmMap.means_, svFilePath);
+            #joblib.dump(means_and_covars, svFilePath);
 
         # Extract devset supervectors
         for seq in develset:
@@ -134,9 +137,12 @@ def process_subfold(sf,fold):
                 feat = seq[1].transpose()
             else:
                 feat = seq[1]
-            gmmMap.map_adapt(feat);
+            gmmMap.map_adapt(feat)
+            # adatta l'ubm ad una feature
+            #means_and_covars = np.hstack((gmmMap.means_, gmmMap.covars_))
             svFilePath = os.path.join(curSupervecSubPath,  os.path.basename(seq[0]));
             joblib.dump(gmmMap.means_, svFilePath);
+            #joblib.dump(means_and_covars, svFilePath);
     
     t1 = time.time();
     
