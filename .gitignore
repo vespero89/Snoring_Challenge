@@ -1,2 +1,8 @@
 
 \.idea/
+
+feat_extraction/pncc/
+
+*.log
+
+*.pyc
