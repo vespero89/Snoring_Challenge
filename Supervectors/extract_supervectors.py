@@ -16,8 +16,8 @@ import utils.dataset_manupulation as dm
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'logmel'
-filetype = 'npy'
+featureset = 'LOGMEL_D'
+filetype = 'htk'
 
 
 #TODO ADD ROOTDIR PARAM

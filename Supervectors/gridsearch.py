@@ -13,8 +13,8 @@ import utils.utils as utl
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'logmel'
-filetype = 'npy'
+featureset = 'LOGMEL_D'
+filetype = 'htk'
 
 #path setup
 root_dir = os.path.realpath('/media/fabio/DATA/Work/Snoring/Snore_dist')
