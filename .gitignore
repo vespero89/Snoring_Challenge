@@ -1,14 +1,14 @@
 
 \.idea/
 
-feat_extraction/smile\.log
-
 feat_extraction/pncc/
 
-utils/conf_gen_random_search\.py
-
-utils/custom_distributions\.py
+*.log
 
 *.pyc
 
+feat_extraction/smile\.log
+feat_extraction/pncc/
+utils/conf_gen_random_search\.py
+utils/custom_distributions\.py
 utils/exp1_MLP\.conf
