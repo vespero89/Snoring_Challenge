@@ -1,6 +1,7 @@
 import sys
 sys.path.append('..')
 import numpy as np
+np.random.seed(888)#for experiment repetibility
 import ANN_classifier as ann
 import os
 import sys
