@@ -16,7 +16,7 @@ import utils.dataset_manupulation as dm
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'LOGMEL_D'
+featureset = 'PNCC'
 filetype = 'htk'
 
 
@@ -26,9 +26,9 @@ targePath = os.path.join(root_dir, 'gmmUbmSvm','snoring_class')
 listPath = os.path.join(root_dir, 'dataset')
 featPath = os.path.join(root_dir, 'dataset', featureset)
 
-ubmsPath = os.path.join(targePath, featureset, "ubms")
-supervecPath = os.path.join(targePath, featureset, "supervectors")
-scoresPath = os.path.join(targePath, featureset, "score")
+ubmsPath = os.path.join(targePath, featureset, "ubms_ext")
+supervecPath = os.path.join(targePath, featureset, "supervectors_ext")
+scoresPath = os.path.join(targePath, featureset, "score_ext")
 
 # create directory if needed
 if (not os.path.exists(scoresPath)):

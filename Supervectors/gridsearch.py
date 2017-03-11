@@ -13,7 +13,7 @@ import utils.utils as utl
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'LOGMEL'
+featureset = 'PNCC'
 filetype = 'htk'
 
 #path setup
@@ -22,10 +22,10 @@ targePath = os.path.join(root_dir, 'gmmUbmSvm','snoring_class')
 listPath = os.path.join(root_dir, 'dataset')
 featPath = os.path.join(root_dir, 'dataset', featureset)
 
-ubmsPath = os.path.join(targePath, featureset, "ubms")
-supervecPath = os.path.join(targePath, featureset, "supervectors")
-scoresPath = os.path.join(targePath, featureset, "score")
-snoreClassPath =os.path.join(targePath, featureset, "score","final_score.csv")#used for save best c-best gamma-best nmix so that extract_supervector_test.py and test.py can read it
+ubmsPath = os.path.join(targePath, featureset, "ubms_ext")
+supervecPath = os.path.join(targePath, featureset, "supervectors_ext")
+scoresPath = os.path.join(targePath, featureset, "score_ext")
+snoreClassPath =os.path.join(targePath, featureset, "score_ext","final_score.csv")#used for save best c-best gamma-best nmix so that extract_supervector_test.py and test.py can read it
 
 sys.stdout = open(os.path.join(scoresPath,'gridsearch.txt'), 'w')   #log to a file
 print "experiment: "+targePath; #to have the reference to experiments in text files
@@ -59,6 +59,10 @@ for seq in develset:
 
 y_train, y_train_lab = dm.label_organize(trainset_l, y)
 y_devel, y_devel_lab = dm.label_organize(develset_l, yd)
+
+##EXTEND TRAINSET
+y_train_lab = np.append(y_train_lab,y_devel_lab[:140])
+y_devel_lab = y_devel_lab[140:]
 
 def compute_score(predictions, labels):
     print("compute_score")
@@ -109,6 +113,10 @@ for m in mixtures:
 
             devFeatures = utl.readfeatures(curSupervecSubPath, yd)
             devClassLabels = y_devel_lab
+
+            ##EXTEND TRAINSET
+            trainFeatures = np.vstack((trainFeatures,devFeatures[:140,:]))
+            devFeatures = devFeatures[140:]
 
             cIdx = 0;
             for C in C_range:
