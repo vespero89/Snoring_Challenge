@@ -11,7 +11,6 @@ import argparse
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-
 parser = argparse.ArgumentParser(description="ComParE2017 Snoring Classification")
 
 # Global params
