@@ -3,7 +3,6 @@ sys.path.append('..')
 import numpy as np
 from sklearn.svm import SVC
 import sklearn.preprocessing as preprocessing
-from sklearn.externals import joblib
 from sklearn.metrics import recall_score, accuracy_score, confusion_matrix, classification_report
 import os
 import sys
