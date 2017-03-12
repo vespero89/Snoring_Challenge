@@ -28,11 +28,11 @@ featPath = os.path.join(root_dir, 'dataset', featureset)
 ubmsPath = os.path.join(targePath, featureset, "ubms")
 supervecPath = os.path.join(targePath, featureset, "supervectors")
 scoresPath = os.path.join(targePath, featureset, "score_hier")
-snoreClassPath =os.path.join(targePath, featureset, "score_hier","final_score.csv")
+snoreClassPath =os.path.join(targePath, featureset, "score_hier","final_score_TEST.csv")
 
-#sys.stdout = open(os.path.join(scoresPath,'test.txt'), 'w')   #log to a file
+sys.stdout = open(os.path.join(scoresPath,'test.txt'), 'w')   #log to a file
 print "TEST: "+featureset; #to have the reference to experiments in text files
-#sys.stderr = open(os.path.join(scoresPath,'test_err.txt'), 'w')   #log to a file
+sys.stderr = open(os.path.join(scoresPath,'test_err.txt'), 'w')   #log to a file
 
 #LOAD DATASET
 snoring_dataset = dm.load_ComParE2017(featPath, filetype) # load dataset
@@ -56,9 +56,9 @@ nMixtures_bin = joblib.load(os.path.join(scoresPath,'nmix_bin'));
 Cs_bin =joblib.load(os.path.join(scoresPath,'cBestValues_bin')); # Best
 gammas_bin =joblib.load(os.path.join(scoresPath,'gBestValues_bin')); # Best
 
-nMixtures_class = joblib.load(os.path.join(scoresPath,'nmix_class'));
-Cs_class =joblib.load(os.path.join(scoresPath,'cBestValues_class')); # Best
-gammas_class =joblib.load(os.path.join(scoresPath,'gBestValues_class')); # Best
+nMixtures_class = joblib.load(os.path.join(scoresPath,'nmix_glob'));
+Cs_class =joblib.load(os.path.join(scoresPath,'cBestValues_glob')); # Best
+gammas_class =joblib.load(os.path.join(scoresPath,'gBestValues_glob')); # Best
 
 nFolds = 1;
 
@@ -78,6 +78,16 @@ def compute_score(predictions, labels):
     A = accuracy_score(y_true, y_pred)
     UAR = recall_score(y_true, y_pred, average='macro')
     CM = confusion_matrix(y_true, y_pred)
+
+    cm = CM.astype(int)
+    print("FINAL REPORT")
+    print("\t V\t O\t T\t E")
+    print("V \t" + str(cm[0, 0]) + "\t" + str(cm[0, 1]) + "\t" + str(cm[0, 2]) + "\t" + str(cm[0, 3]))
+    print("O \t" + str(cm[1, 0]) + "\t" + str(cm[1, 1]) + "\t" + str(cm[1, 2]) + "\t" + str(cm[1, 3]))
+    print("T \t" + str(cm[2, 0]) + "\t" + str(cm[2, 1]) + "\t" + str(cm[2, 2]) + "\t" + str(cm[2, 3]))
+    print("E \t" + str(cm[3, 0]) + "\t" + str(cm[3, 1]) + "\t" + str(cm[3, 2]) + "\t" + str(cm[3, 3]))
+
+    print(classification_report(y_true, y_pred, target_names=['V', 'O', 'T', 'E']))
 
     return A, UAR, CM, y_pred
 
@@ -106,7 +116,6 @@ for fold in range(0, nFolds):
         predLabels = svm.predict(scaler.transform(testFeatures));
 
         print "Multiclass Predictions"
-        #TODO FUNZIONE CHE RIACCORPA predLabels ed etichetta nome, quindi ricarico solo quelle delle classi B-C-D
         C_class = Cs_class[fold - 1];
         gamma_class = gammas_class[fold - 1];
 
