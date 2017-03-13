@@ -13,8 +13,8 @@ import utils.utils as utl
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'FBANK_E_D'
-filetype = 'htk'
+featureset = 'MFCC'
+filetype = 'npy'
 
 #path setup
 root_dir = os.path.realpath('/media/fabio/DATA/Work/Snoring/Snore_dist')
