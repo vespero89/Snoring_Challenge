@@ -9,6 +9,7 @@ import os
 import sys
 import utils.dataset_manupulation as dm
 import utils.utils as utl
+import utils.create_arff as arff
 
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
@@ -22,10 +23,10 @@ targePath = os.path.join(root_dir, 'gmmUbmSvm','snoring_class')
 listPath = os.path.join(root_dir, 'dataset')
 featPath = os.path.join(root_dir, 'dataset', featureset)
 
-ubmsPath = os.path.join(targePath, featureset, "ubms_ext")
-supervecPath = os.path.join(targePath, featureset, "supervectors_ext")
-scoresPath = os.path.join(targePath, featureset, "score_ext")
-snoreClassPath =os.path.join(targePath, featureset, "score_ext","final_score.csv")#used for save best c-best gamma-best nmix so that extract_supervector_test.py and test.py can read it
+ubmsPath = os.path.join(targePath, featureset, "ubms")
+supervecPath = os.path.join(targePath, featureset, "supervectors")
+scoresPath = os.path.join(targePath, featureset, "score")
+snoreClassPath =os.path.join(targePath, featureset, "score","final_score.csv")#used for save best c-best gamma-best nmix so that extract_supervector_test.py and test.py can read it
 
 sys.stdout = open(os.path.join(scoresPath,'gridsearch.txt'), 'w')   #log to a file
 print "experiment: "+targePath; #to have the reference to experiments in text files
@@ -57,12 +58,12 @@ yd = []
 for seq in develset:
     yd.append(seq[0])
 
-y_train, y_train_lab = dm.label_organize(trainset_l, y)
-y_devel, y_devel_lab = dm.label_organize(develset_l, yd)
+y_train, y_train_lab, _ = dm.label_organize(trainset_l, y)
+y_devel, y_devel_lab, y_devel_lit = dm.label_organize(develset_l, yd)
 
 ##EXTEND TRAINSET
-y_train_lab = np.append(y_train_lab,y_devel_lab[:140])
-y_devel_lab = y_devel_lab[140:]
+#y_train_lab = np.append(y_train_lab,y_devel_lab[:140])
+#y_devel_lab = y_devel_lab[140:]
 
 def compute_score(predictions, labels):
     print("compute_score")
@@ -91,8 +92,8 @@ def compute_score(predictions, labels):
     print("E \t" + str(cm[3, 0]) + "\t" + str(cm[3, 1]) + "\t" + str(cm[3, 2]) + "\t" + str(cm[3, 3]))
 
     print(classification_report(y_true, y_pred, target_names=['V', 'O', 'T', 'E']))
-
-    return A, UAR, CM, y_pred
+    recall_report = recall_score(y_true, y_pred, labels=['0', '1', '2', '3'], average=None)
+    return A, UAR, CM, y_pred, recall_report
 
 for m in mixtures:
     print("Mixture: " + str(m))
@@ -115,8 +116,8 @@ for m in mixtures:
             devClassLabels = y_devel_lab
 
             ##EXTEND TRAINSET
-            trainFeatures = np.vstack((trainFeatures,devFeatures[:140,:]))
-            devFeatures = devFeatures[140:]
+            #trainFeatures = np.vstack((trainFeatures,devFeatures[:140,:]))
+            #devFeatures = devFeatures[140:]
 
             cIdx = 0;
             for C in C_range:
@@ -127,15 +128,16 @@ for m in mixtures:
                     svm = SVC(C=C, kernel='rbf', gamma=gamma, class_weight='auto')
                     svm.fit(scaler.transform(trainFeatures), trainClassLabels) #nomealizzazione e adattamento
                     predLabels = svm.predict(scaler.transform(devFeatures))
-                    A, UAR, ConfMatrix, class_pred = compute_score(predLabels, y_devel_lab)
+                    print "C= " + str(C) + "; GAMMA= " + str(gamma)
+                    A, UAR, ConfMatrix, class_pred, recall_report = compute_score(predLabels, y_devel_lab)
                     cGammaScores[cIdx,gIdx] += UAR
                     gIdx += 1;
                 cIdx += 1;
 
         idxs = np.unravel_index(cGammaScores.argmax(), cGammaScores.shape) #trova l'indirizzo all'interno della matrice cGammaScores a cui corrisponde il valore max
-        cBestValues[mIdx,fold-1] = C_range[idxs[0]]       #per ogni cartella (trainset+devset_(1)) si salva il valore di C che mi da il punteggio maggiore (il tutto lo fa anche per ogni valore di mixture)
-        gBestValues[mIdx,fold-1] = gamma_range[idxs[1]]   #per ogni cartella (trainset+devset_(1)) si salva il valore di GAMMA che mi da il punteggio maggiore (il tutto lo fa anche per ogni valore di mixture)
-        scores[mIdx,fold-1] = cGammaScores.max()
+        cBestValues[mIdx,fold] = C_range[idxs[0]]       #per ogni cartella (trainset+devset_(1)) si salva il valore di C che mi da il punteggio maggiore (il tutto lo fa anche per ogni valore di mixture)
+        gBestValues[mIdx,fold] = gamma_range[idxs[1]]   #per ogni cartella (trainset+devset_(1)) si salva il valore di GAMMA che mi da il punteggio maggiore (il tutto lo fa anche per ogni valore di mixture)
+        scores[mIdx,fold] = cGammaScores.max()
 
     mIdx += 1
 
@@ -158,4 +160,37 @@ print "best vale of g for " + str(mixtures[idx_max_score]) +" gaussian : "+ str(
 joblib.dump(mixtures[idx_max_score],os.path.join(scoresPath, "nmix"))
 joblib.dump(cBestValues[idx_max_score],os.path.join(scoresPath, "cBestValues"))
 joblib.dump(gBestValues[idx_max_score],os.path.join(scoresPath, "gBestValues"))
+
+#PRINT BEST VALUES
+mix = mixtures[idx_max_score]
+curSupervecSubPath = os.path.join(supervecPath, "trainset_" + str(fold), str(mix))
+trainFeatures = utl.readfeatures(curSupervecSubPath, y)
+trainClassLabels = y_train_lab
+
+devFeatures = utl.readfeatures(curSupervecSubPath, yd)
+devClassLabels = y_devel_lab
+
+C=cBestValues[idx_max_score]
+gamma=gBestValues[idx_max_score]
+
+scaler = preprocessing.MinMaxScaler(feature_range=(-1,1))
+scaler.fit(trainFeatures);
+svm = SVC(C=C, kernel='rbf', gamma=gamma, class_weight='auto')
+svm.fit(scaler.transform(trainFeatures), trainClassLabels)  # nomealizzazione e adattamento
+predLabels = svm.predict(scaler.transform(devFeatures))
+for p in range(0,len(predLabels)):
+    predClass = [0, 0, 0, 0]
+    index = int(predLabels[p])
+    predClass[index] = 1
+    if p == 0:
+        predProb = predClass
+    else:
+        predProb=np.vstack((predProb,predClass))
+
+A, UAR, ConfMatrix, class_pred, recall_report = compute_score(predLabels, y_devel_lab)
+
+#CREATE ARFF FILES
+arff.create_arff(scoresPath, yd, predProb, class_pred)
+arff.create_pred(scoresPath, y_devel_lab, y_devel_lit, predProb, class_pred)
+arff.create_result(scoresPath, A, UAR, ConfMatrix, recall_report)
         
