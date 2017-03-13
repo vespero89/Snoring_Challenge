@@ -204,7 +204,7 @@ def label_organize(label_set,namelist):
             i = 3
         y_set_int = np.append(y_set_int, i)
 
-    y_set_cat= nputils.to_categorical(y_set_int,nb_classes=4)
+    y_set_cat = nputils.to_categorical(y_set_int,nb_classes=4)
     return y_set_cat, y_set_int, y_set
 
 def dim_to_pad(set_to_pad):

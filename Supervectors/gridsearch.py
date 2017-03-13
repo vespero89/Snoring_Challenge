@@ -115,6 +115,9 @@ for m in mixtures:
             devFeatures = utl.readfeatures(curSupervecSubPath, yd)
             devClassLabels = y_devel_lab
 
+            scaler = preprocessing.MinMaxScaler(feature_range=(-1,1))
+            scaler.fit(trainFeatures);
+
             ##EXTEND TRAINSET
             #trainFeatures = np.vstack((trainFeatures,devFeatures[:140,:]))
             #devFeatures = devFeatures[140:]
@@ -177,6 +180,8 @@ scaler = preprocessing.MinMaxScaler(feature_range=(-1,1))
 scaler.fit(trainFeatures);
 svm = SVC(C=C, kernel='rbf', gamma=gamma, class_weight='auto')
 svm.fit(scaler.transform(trainFeatures), trainClassLabels)  # nomealizzazione e adattamento
+Best_MODEL = svm.get_params()
+joblib.dump(Best_MODEL, os.path.join(scoresPath, "best_model"))
 predLabels = svm.predict(scaler.transform(devFeatures))
 for p in range(0,len(predLabels)):
     predClass = [0, 0, 0, 0]
