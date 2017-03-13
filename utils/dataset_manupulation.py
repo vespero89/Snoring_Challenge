@@ -210,3 +210,53 @@ def label_organize(label_set,namelist):
 def dim_to_pad(set_to_pad):
     dim_pad = np.amax([len(k[1][2]) for k in set_to_pad])
     return dim_pad
+
+def data_bin_organize(label_set,namelist):
+    y_set = []
+    for i in range(len(namelist)):
+        a = path.splitext(namelist[i])[0]
+        for j in range(len(label_set)):
+            b = path.splitext(label_set[j][0])[0]
+            if a == b:
+                y_set.append(label_set[j][1])
+
+    y_set_int = []
+    for k in y_set:
+        if k == 'V':
+            i = 0
+        else:
+            i = 1
+        y_set_int = np.append(y_set_int, i)
+
+    return y_set_int
+
+def data_class_organize(label_set,namelist,data_set):
+    y_set = []
+    for i in range(len(namelist)):
+        a = path.splitext(namelist[i])[0]
+        for j in range(len(label_set)):
+            b = path.splitext(label_set[j][0])[0]
+            if a == b:
+                y_set.append(label_set[j][1])
+
+    y_set_int = []
+    x_set = data_set[:]
+    j=0
+    k_to_remove = []
+    for k in range(0,len(y_set)):
+        if y_set[k] == 'V':
+            k_to_remove.append(k)
+        elif y_set[k] == 'O':
+            i = 0
+            y_set_int.append(i)
+        elif y_set[k] == 'T':
+            i = 1
+            y_set_int.append(i)
+        elif y_set[k] == 'E':
+            i = 2
+            y_set_int.append(i)
+        j+=1
+
+    x_set = np.delete(x_set, k_to_remove, axis=0)
+    y_set_cat = nputils.to_categorical(y_set_int,nb_classes=3)
+    return x_set, y_set_cat, y_set_int

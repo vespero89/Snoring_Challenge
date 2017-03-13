@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-     #aggiunto perche altrimenti sul cluster dava problemi di codifica del testo
-import os;
-import numpy;
-from sklearn.externals import joblib;
+import os
+import numpy as np
+import struct
+from sklearn.externals import joblib
 
 def readfeatures(basePath, filenames):
 
@@ -9,10 +10,31 @@ def readfeatures(basePath, filenames):
     for filename in filenames:
         feat = joblib.load(os.path.join(basePath, os.path.basename(filename)));
         if (count == 0):
-            features = numpy.zeros((len(filenames), feat.shape[0] * feat.shape[1]));
+            features = np.zeros((len(filenames), feat.shape[0] * feat.shape[1]));
         features[count] = feat.reshape((1, feat.shape[0] * feat.shape[1]));
         count += 1;
 
+    return features;
+
+def read_ivector(filepath):
+    with open(filepath, 'rb') as f:
+        nrows = struct.unpack("<i", f.read(4))[0]
+        ncols = struct.unpack("<i", f.read(4))[0]
+        #nrows = int.from_bytes(f.read(4), byteorder='little')
+        #ncols = int.from_bytes(f.read(4), byteorder='little')
+        ivector = np.zeros((ncols,))
+        for i in range(ncols):
+            ivector[i] = struct.unpack('d', f.read(8))[0]
+    return ivector
+
+def readIvecFeatures(basePath, filenames):
+    count = 0;
+    for filename in filenames:
+        feat = read_ivector(os.path.join(basePath, os.path.basename(filename)));
+        if (count == 0):
+            features = np.zeros((len(filenames), feat.shape[0]));
+        features[count] = feat
+        count += 1;
     return features;
 
 def readlistfile(filename,labelling):#labellig : nclass-biclass
