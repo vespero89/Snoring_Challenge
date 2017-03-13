@@ -12,3 +12,4 @@ feat_extraction/pncc/
 utils/conf_gen_random_search\.py
 utils/custom_distributions\.py
 utils/exp1_MLP\.conf
+feat_extraction/
