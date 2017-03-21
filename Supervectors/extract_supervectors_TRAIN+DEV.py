@@ -26,9 +26,9 @@ targePath = os.path.join(root_dir, 'gmmUbmSvm','snoring_class')
 listPath = os.path.join(root_dir, 'dataset')
 featPath = os.path.join(root_dir, 'dataset', featureset)
 
-ubmsPath = os.path.join(targePath, featureset, "ubms_INV")
-supervecPath = os.path.join(targePath, featureset, "supervectors_INV")
-scoresPath = os.path.join(targePath, featureset, "score_INV")
+ubmsPath = os.path.join(targePath, featureset, "ubms_TT")
+supervecPath = os.path.join(targePath, featureset, "supervectors_TT")
+scoresPath = os.path.join(targePath, featureset, "score_TT")
 
 # create directory if needed
 if (not os.path.exists(scoresPath)):
@@ -38,9 +38,9 @@ if (not os.path.exists(ubmsPath)):
 if (not os.path.exists(supervecPath)):
     os.makedirs(supervecPath)
 
-sys.stdout = open(os.path.join(scoresPath, 'extract_supervector.txt'), 'w')  # log to a file
+#sys.stdout = open(os.path.join(scoresPath, 'extract_supervector.txt'), 'w')  # log to a file
 print "experiment: " + targePath  # to have the reference to experiments in text files
-sys.stderr = open(os.path.join(scoresPath, 'extract_supervector_err.txt'), 'w')  # log to a file
+#sys.stderr = open(os.path.join(scoresPath, 'extract_supervector_err.txt'), 'w')  # log to a file
 
 
 mixtures = np.arange(0, 7, 1);
@@ -64,8 +64,7 @@ def process_subfold(sf,fold):
 
     # Read the features
     trainFeat=np.empty([1,nfeat])
-    #for seq in trainset:
-    for seq in develset:
+    for seq in trainset:
         if (filetype == 'npy'):
             feat = seq[1].transpose()
         else:
@@ -73,9 +72,26 @@ def process_subfold(sf,fold):
         # metto tutte le features in una matrice che poi passero al gmm.fit per adattaare l'UBM
         trainFeat = np.vstack((trainFeat, feat))
     trainFeat = np.delete(trainFeat, 0, 0)
-    print("DONE!")
 
-    #trainFeat = trainFeat.astype(dtype='float32')
+
+    for seq in develset:
+        if (filetype == 'npy'):
+            feat = seq[1].transpose()
+        else:
+            feat = seq[1]
+        # metto tutte le features in una matrice che poi passero al gmm.fit per adattaare l'UBM
+        trainFeat = np.vstack((trainFeat, feat))
+
+
+    for seq in testset:
+        if (filetype == 'npy'):
+            feat = seq[1].transpose()
+        else:
+            feat = seq[1]
+        # metto tutte le features in una matrice che poi passero al gmm.fit per adattaare l'UBM
+        trainFeat = np.vstack((trainFeat, feat))
+
+    print("DONE!")
 
 
     for m in mixtures:
@@ -160,7 +176,6 @@ def process_subfold(sf,fold):
             svFilePath = os.path.join(curSupervecSubPath,  os.path.basename(seq[0]));
             joblib.dump(gmmMap.means_, svFilePath);
             #joblib.dump(means_and_covars, svFilePath);
-
     t1 = time.time();
     
     print("Fold "+str(fold) + "--Time: "+str(t1-t0));

@@ -37,6 +37,7 @@ def create_result(eval_path, A, UAR, ConfMatrix, recall_report):
         f.write("\tT \t" + str(ConfMatrix[2, 0]) + "\t" + str(ConfMatrix[2, 1]) + "\t" + str(ConfMatrix[2, 2]) + "\t" + str(ConfMatrix[2, 3]) + "\n")
         f.write("\tE \t" + str(ConfMatrix[3, 0]) + "\t" + str(ConfMatrix[3, 1]) + "\t" + str(ConfMatrix[3, 2]) + "\t" + str(ConfMatrix[3, 3]) + "\n")
 
+
 def create_pred(eval_path, y_devel_lab, y_devel_lit, output, class_pred):
     prediction = path.join(eval_path, 'ComParE2017_Snore.pred')
     with open(prediction, 'w') as f:
@@ -63,12 +64,13 @@ def create_pred(eval_path, y_devel_lab, y_devel_lit, output, class_pred):
             f.write(line)
             stars = ['', '', '', '']
 
+
 def create_arff(eval_path, name_list, output, class_pred):
     arff = path.join(eval_path, 'ComParE2017_Snore.arff')
     with open(arff, 'w') as f:
-        f.write("@relation ComParE2017_Deception_Predictions_baseline\n")
+        f.write("@relation ComParE2017_A3lab_Predictions\n")
         f.write("@attribute instance_name string\n")
-        f.write("@attribute prediction { V, O, T, E }\n")
+        f.write("@attribute Snore { V, O, T, E }\n")
         f.write("@attribute score_V numeric\n")
         f.write("@attribute score_O numeric\n")
         f.write("@attribute score_T numeric\n")
@@ -87,3 +89,34 @@ def create_arff(eval_path, name_list, output, class_pred):
             line = "{:.3f},{:.3f},{:.3f},{:.3f}"+"\n"
             line = line.format(output[o][0], output[o][1], output[o][2], output[o][3])
             f.write(line)
+
+def create_arff_test(eval_path, name_list, output, class_pred):
+    arff = path.join(eval_path, 'ComParE2017_Snore_test.arff')
+    lines = list()
+    with open(arff, 'w') as f:
+        f.write("@relation ComParE2017_A3lab_Predictions\n")
+        f.write("@attribute instance_name string\n")
+        f.write("@attribute Snore { V, O, T, E }\n")
+        f.write("@attribute score_V numeric\n")
+        f.write("@attribute score_O numeric\n")
+        f.write("@attribute score_T numeric\n")
+        f.write("@attribute score_E numeric\n")
+        f.write("@data\n")
+        for o in range(len(output)):
+            if class_pred[o] == 0:
+                str_class_pred = 'V'
+            elif class_pred[o] == 1:
+                str_class_pred = 'O'
+            elif class_pred[o] == 2:
+                str_class_pred = 'T'
+            elif class_pred[o] == 3:
+                str_class_pred = 'E'
+            name = (name_list[o].split('.'))[0] + ".wav"
+            #f.write("'"+name+"',"+str_class_pred+",")
+            line = "'" + name + "'," + str_class_pred + "," + "{:.3f},{:.3f},{:.3f},{:.3f}" + "\n"
+            line = line.format(output[o][0], output[o][1], output[o][2], output[o][3])
+            #f.write(line)
+            lines.append(line)
+        lines.sort()
+        for o in range(len(lines)):
+            f.write(lines[o])

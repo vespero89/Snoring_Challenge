@@ -16,7 +16,7 @@ import utils.utils as utl
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'PNCC'
+featureset = 'SCAT'
 filetype = 'htk'
 
 #path setup
@@ -27,12 +27,12 @@ featPath = os.path.join(root_dir, 'dataset', featureset)
 
 ubmsPath = os.path.join(targePath, featureset, "ubms")
 supervecPath = os.path.join(targePath, featureset, "supervectors")
-scoresPath = os.path.join(targePath, featureset, "score")
-snoreClassPath =os.path.join(targePath, featureset, "score","final_score_TEST.csv")
+scoresPath = os.path.join(targePath, featureset, "score_best")
+snoreClassPath =os.path.join(targePath, featureset, "score_best","final_score_TEST_ER_t.csv")
 
-#sys.stdout = open(os.path.join(scoresPath,'test.txt'), 'w')   #log to a file
+sys.stdout = open(os.path.join(scoresPath,'test.txt'), 'w')   #log to a file
 print "TEST: "+featureset; #to have the reference to experiments in text files
-#sys.stderr = open(os.path.join(scoresPath,'test_err.txt'), 'w')   #log to a file
+sys.stderr = open(os.path.join(scoresPath,'test_err.txt'), 'w')   #log to a file
 
 #LOAD DATASET
 snoring_dataset = dm.load_ComParE2017(featPath, filetype) # load dataset
@@ -49,12 +49,21 @@ yd = []
 for seq in develset:
     yd.append(seq[0])
 
+yt = []
+for seq in testset:
+    yt.append(seq[0])
+
 y_train, y_train_lab, _ = dm.label_organize(trainset_l, y)
 y_devel, y_devel_lab, y_devel_lit = dm.label_organize(develset_l, yd)
 
-nMixtures = joblib.load(os.path.join(scoresPath,'nmix'));
-Cs = joblib.load(os.path.join(scoresPath,'cBestValues')); # Best
-gammas =joblib.load(os.path.join(scoresPath,'gBestValues')); # Best
+#EXTEND TRAINSET
+#y_train_lab = np.append(y_train_lab,y_devel_lab[:140])
+#y_devel_lab = y_devel_lab[140:]
+
+
+nMixtures = joblib.load(os.path.join(scoresPath,'nmix2'));
+Cs = joblib.load(os.path.join(scoresPath,'cBestValues2')); # Best
+gammas =joblib.load(os.path.join(scoresPath,'gBestValues2')); # Best
 Best_model = joblib.load(os.path.join(scoresPath,'best_model')); # Best
 nFolds = 1;
 
@@ -98,36 +107,58 @@ for fold in range(0, nFolds):
         curSupervecPath = os.path.join(supervecPath, "trainset_" + str(fold), str(nMixtures));
         #TODO LOAD FEATURES
         trainFeatures = utl.readfeatures(curSupervecPath, y)
-        testFeatures = utl.readfeatures(curSupervecPath, yd)
+        devFeatures = utl.readfeatures(curSupervecPath, yd)
+        testFeatures = utl.readfeatures(curSupervecPath, yt)
         trainClassLabels = y_train_lab
+
+        #EXTEND TRAINSET
+        #trainFeatures = np.vstack((trainFeatures,devFeatures[:140,:]))
+        #devFeatures = devFeatures[140:]
+
         scaler = preprocessing.MinMaxScaler(feature_range=(-1,1));
         scaler.fit(trainFeatures);
         svm = SVC(C=C, kernel='rbf', gamma=gamma, class_weight='auto', probability=True)
         svm.fit(scaler.transform(trainFeatures), trainClassLabels);
+        predLabels_train = svm.predict(scaler.transform(trainFeatures));
+        predLabels_dev = svm.predict(scaler.transform(devFeatures));
 
-        predLabels = svm.predict(scaler.transform(testFeatures));
-        for p in range(0, len(predLabels)):
+        sys.stdout = open(snoreClassPath, 'w')
+        print featureset
+        print("**** Results SVM****")
+        print("train set")
+        A, UAR, ConfMatrix, class_pred, recall_report = compute_score(predLabels_train, y_train_lab)  # TODO LOAD TOTAL DEVSET LABELS
+        print("Accuracy: " + str(A))
+        print("UAR: " + str(UAR))
+
+        print("devel set")
+        print("N GAUSS:" + str(nMixtures) + " C:" + str(C) + " gamma:" + str(gamma))
+        A, UAR, ConfMatrix, class_pred, recall_report = compute_score(predLabels_dev,y_devel_lab)  # TODO LOAD TOTAL DEVSET LABELS
+        print("Accuracy: " + str(A))
+        print("UAR: " + str(UAR))
+
+        predLabels_test = svm.predict(scaler.transform(testFeatures));
+        for p in range(0, len(predLabels_test)):
             predClass = [0, 0, 0, 0]
-            index = int(predLabels[p])
+            index = int(predLabels_test[p])
             predClass[index] = 1
             if p == 0:
                 predProb = predClass
             else:
                 predProb = np.vstack((predProb, predClass))
 
+        class_pred = []
+        for d in predLabels_test:
+            class_pred.append(int(d))
 
-        A, UAR, ConfMatrix, class_pred, recall_report = compute_score(predLabels, y_devel_lab) #TODO LOAD TOTAL DEVSET LABELS
+        V_tot = np.sum(predProb[:,0])
+        O_tot = np.sum(predProb[:, 1])
+        T_tot = np.sum(predProb[:, 2])
+        E_tot = np.sum(predProb[:, 3])
 
-        sys.stdout = open(snoreClassPath, 'w')
-        print featureset
-        print("**** Results SVM****")
-
-        print("Accuracy: " + str(A))
-        print("UAR: " + str(UAR))
-
+        print("N Predictions VOTE;" + str(V_tot) + ";" + str(O_tot) + ";" + str(T_tot) + ";" + str(E_tot))
 
         # # CREATE ARFF FILES
-        arff.create_arff(scoresPath, yd, predProb, class_pred)
-        arff.create_pred(scoresPath, y_devel_lab, y_devel_lit, predProb, class_pred)
-        arff.create_result(scoresPath, A, UAR, ConfMatrix, recall_report)
+        arff.create_arff_test(scoresPath, yt, predProb, class_pred)
+        # arff.create_pred(scoresPath, y_devel_lab, y_devel_lit, predProb, class_pred)
+        # arff.create_result(scoresPath, A, UAR, ConfMatrix, recall_report)
 

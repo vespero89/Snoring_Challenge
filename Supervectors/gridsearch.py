@@ -14,7 +14,7 @@ import utils.create_arff as arff
 import warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
-featureset = 'PNCC'
+featureset = 'SCAT'
 filetype = 'htk'
 
 #path setup
@@ -23,20 +23,24 @@ targePath = os.path.join(root_dir, 'gmmUbmSvm','snoring_class')
 listPath = os.path.join(root_dir, 'dataset')
 featPath = os.path.join(root_dir, 'dataset', featureset)
 
-ubmsPath = os.path.join(targePath, featureset, "ubms")
+#ubmsPath = os.path.join(targePath, featureset, "ubms_ext")
 supervecPath = os.path.join(targePath, featureset, "supervectors")
 scoresPath = os.path.join(targePath, featureset, "score")
-snoreClassPath =os.path.join(targePath, featureset, "score","final_score.csv")#used for save best c-best gamma-best nmix so that extract_supervector_test.py and test.py can read it
+snoreClassPath =os.path.join(targePath, featureset, "score","final_score_ET.csv")#used for save best c-best gamma-best nmix so that extract_supervector_test.py and test.py can read it
 
-sys.stdout = open(os.path.join(scoresPath,'gridsearch.txt'), 'w')   #log to a file
+sys.stdout = open(os.path.join(scoresPath,'gridsearch_ET.txt'), 'w')   #log to a file
 print "experiment: "+targePath; #to have the reference to experiments in text files
-sys.stderr = open(os.path.join(scoresPath,'gridsearch_err.txt'), 'w')   #log to a file
+sys.stderr = open(os.path.join(scoresPath,'gridsearch_err_ET.txt'), 'w')   #log to a file
 
 #variables inizialization
 nFolds = 1;
 C_range = 2.0 ** np.arange(-5, 15+2, 2)    # libsvm range
 gamma_range = 2.0 ** np.arange(-15, 3+2, 2) # libsvm range
 mixtures = 2**np.arange(0, 7, 1)
+
+# C_range = 2.0 ** np.arange(5, 6, 1)    # libsvm range
+# gamma_range = 2.0 ** np.arange(-12, -11, 1) # libsvm range
+# mixtures = 2**np.arange(6, 7, 1)
 
 scores      = np.zeros((mixtures.shape[0], nFolds))
 cBestValues = np.zeros((mixtures.shape[0], nFolds))
@@ -61,9 +65,20 @@ for seq in develset:
 y_train, y_train_lab, _ = dm.label_organize(trainset_l, y)
 y_devel, y_devel_lab, y_devel_lit = dm.label_organize(develset_l, yd)
 
-##EXTEND TRAINSET
-#y_train_lab = np.append(y_train_lab,y_devel_lab[:140])
-#y_devel_lab = y_devel_lab[140:]
+# TRAIN INVERSO
+# y = []
+# for seq in develset:
+#     y.append(seq[0])
+#
+# yd = []
+# for seq in trainset:
+#     yd.append(seq[0])
+# y_train, y_train_lab, _ = dm.label_organize(develset_l, y)
+# y_devel, y_devel_lab, y_devel_lit = dm.label_organize(trainset_l, yd)
+
+# ##EXTEND TRAINSET
+# y_train_lab = np.append(y_train_lab,y_devel_lab[:140])
+# y_devel_lab = y_devel_lab[140:]
 
 def compute_score(predictions, labels):
     print("compute_score")
@@ -112,15 +127,17 @@ for m in mixtures:
             trainFeatures = utl.readfeatures(curSupervecSubPath, y)
             trainClassLabels = y_train_lab
 
-            devFeatures = utl.readfeatures(curSupervecSubPath, yd)
-            devClassLabels = y_devel_lab
+            # devFeatures = utl.readfeatures(curSupervecSubPath, yd)
+            # devClassLabels = y_devel_lab
 
-            scaler = preprocessing.MinMaxScaler(feature_range=(-1,1))
-            scaler.fit(trainFeatures);
+            #ERROR TEST
+            devFeatures = utl.readfeatures(curSupervecSubPath, y)
+            devClassLabels = y_train_lab
 
-            ##EXTEND TRAINSET
-            #trainFeatures = np.vstack((trainFeatures,devFeatures[:140,:]))
-            #devFeatures = devFeatures[140:]
+
+            # #EXTEND TRAINSET
+            # trainFeatures = np.vstack((trainFeatures,devFeatures[:140,:]))
+            # devFeatures = devFeatures[140:]
 
             cIdx = 0;
             for C in C_range:
@@ -132,7 +149,7 @@ for m in mixtures:
                     svm.fit(scaler.transform(trainFeatures), trainClassLabels) #nomealizzazione e adattamento
                     predLabels = svm.predict(scaler.transform(devFeatures))
                     print "C= " + str(C) + "; GAMMA= " + str(gamma)
-                    A, UAR, ConfMatrix, class_pred, recall_report = compute_score(predLabels, y_devel_lab)
+                    A, UAR, ConfMatrix, class_pred, recall_report = compute_score(predLabels, y_train_lab)
                     cGammaScores[cIdx,gIdx] += UAR
                     gIdx += 1;
                 cIdx += 1;
@@ -159,11 +176,11 @@ idx_max_score = scoresAvg.argmax()
 print "best vale of c for " + str(mixtures[idx_max_score]) +" gaussian : "+ str(cBestValues[idx_max_score])
 print "best vale of g for " + str(mixtures[idx_max_score]) +" gaussian : "+ str(gBestValues[idx_max_score])
 
-#save best c-best gamma-best nmix
-joblib.dump(mixtures[idx_max_score],os.path.join(scoresPath, "nmix"))
-joblib.dump(cBestValues[idx_max_score],os.path.join(scoresPath, "cBestValues"))
-joblib.dump(gBestValues[idx_max_score],os.path.join(scoresPath, "gBestValues"))
-
+# #save best c-best gamma-best nmix
+joblib.dump(mixtures[idx_max_score],os.path.join(scoresPath, "nmixED"))
+joblib.dump(cBestValues[idx_max_score],os.path.join(scoresPath, "cBestValuesED"))
+joblib.dump(gBestValues[idx_max_score],os.path.join(scoresPath, "gBestValuesED"))
+#
 #PRINT BEST VALUES
 mix = mixtures[idx_max_score]
 curSupervecSubPath = os.path.join(supervecPath, "trainset_" + str(fold), str(mix))
@@ -193,9 +210,9 @@ for p in range(0,len(predLabels)):
         predProb=np.vstack((predProb,predClass))
 
 A, UAR, ConfMatrix, class_pred, recall_report = compute_score(predLabels, y_devel_lab)
-
+#
 #CREATE ARFF FILES
 arff.create_arff(scoresPath, yd, predProb, class_pred)
 arff.create_pred(scoresPath, y_devel_lab, y_devel_lit, predProb, class_pred)
 arff.create_result(scoresPath, A, UAR, ConfMatrix, recall_report)
-        
+#
