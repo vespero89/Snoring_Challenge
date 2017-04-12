@@ -5,7 +5,6 @@ import random
 from sklearn.externals import joblib
 import os
 os.environ["KERAS_BACKEND"] = "theano"
-
 from keras.models import Model
 from keras.layers import Input, Dense, Dropout, BatchNormalization
 from keras.optimizers import Adam, Adadelta
@@ -80,12 +79,14 @@ featPath = os.path.join(root_dir, 'dataset', featureset)
 ubmsPath = os.path.join(targePath, featureset, "ubms")
 supervecPath = os.path.join(targePath, featureset, "supervectors")
 scoresPath = os.path.join(targePath, featureset, "score_best")
-#snoreClassPath =os.path.join(targePath, featureset, "score_best","final_score_TEST_ER_t.csv")
+GanPath = os.path.join(targePath, featureset, "GAN")
+if (not os.path.exists(GanPath)):
+    os.makedirs(GanPath)
+    os.makedirs(os.path.join(GanPath, 'generated'))
 
 #TODO FIX PATHs
-#sys.stdout = open(os.path.join(scoresPath,'test.txt'), 'w')   #log to a file
-#print "TEST: "+featureset; #to have the reference to experiments in text files
-#sys.stderr = open(os.path.join(scoresPath,'test_err.txt'), 'w')   #log to a file
+sys.stdout = open(os.path.join(GanPath,'GAN_test.txt'), 'w')   #log to a file
+sys.stderr = open(os.path.join(GanPath,'GAN_test_err.txt'), 'w')   #log to a file
 
 #LOAD DATASET
 snoring_dataset = dm.load_ComParE2017(featPath, filetype)
@@ -183,17 +184,23 @@ GAN.compile(loss='categorical_crossentropy', optimizer=opt)
 GAN.summary()
 
 
-# def plot_loss(losses):
-#     plt.figure(figsize=(10, 8))
-#     plt.plot(losses["d"], label='discriminative loss')
-#     plt.plot(losses["g"], label='generative loss')
-#     plt.legend()
-#     plt.show()
+def plot_loss(losses):
+    plt.figure(figsize=(10, 8))
+    plt.plot(losses["d"], label='discriminative loss')
+    plt.plot(losses["g"], label='generative loss')
+    plt.legend()
+    plt.show()
 
 #TODO CREATE FUNCTION TO GENERATE SAMPLES OF DESIRED CLASS AFTER THE GAN TRAINING
-# def plot_gen(n_ex=16, size=(4, 4)):
-#     noise = np.random.uniform(0, 1, size=[n_ex, 100])
-#     generated_images = generator.predict(noise)
+def vector_gen(n_ex=16, size=100):
+    noise = np.random.uniform(0, 1, size=[n_ex, size])
+    generated_vectors = generator.predict(noise)
+    c = 000
+    for vect in generated_vectors:
+        vec_name = "vect_" + str(c) + ".htk"
+        svFilePath = os.path.join(GanPath, 'generated', vec_name)
+        joblib.dump(vect, svFilePath)
+        c += 1
 
 
 
@@ -226,11 +233,12 @@ print "Accuracy: %0.02f %% (%d of %d) vect right" % (acc, n_rig, n_tot)
 
 # set up loss storage vector
 losses = {"d": [], "g": []}
-#TODO PRINT-SAVE in a file LOSSES
 
 # Set up our main training loop
 def train_for_n(nb_epoch=5000, BATCH_SIZE=1):
-
+    with open('losses.csv', 'w') as f:
+        line = "Generator Loss \t Discriminator Loss\n"
+        f.write(line)
     for e in tqdm(range(nb_epoch)):
 
         # Make generative images
@@ -257,21 +265,25 @@ def train_for_n(nb_epoch=5000, BATCH_SIZE=1):
         g_loss = GAN.train_on_batch(noise_tr, y2)
         losses["g"].append(g_loss)
 
+        with open('losses.csv', 'a+') as f:
+            line = "{:.4f}1\t{:.4f}\n"
+            line = line.format(float(g_loss), float(d_loss))
+            f.write(line)
 
 
 # # Train for 6000 epochs at original learning rates
-train_for_n(nb_epoch=5000, BATCH_SIZE=1)
-#
+train_for_n(nb_epoch=50, BATCH_SIZE=1)
+plot_loss(losses)
+
 # # Train for 2000 epochs at reduced learning rates
 # opt.lr.set_value(1e-5)
 # dopt.lr.set_value(1e-4)
 # train_for_n(nb_epoch=2000, BATCH_SIZE=1)
-#
+
 # # Train for 2000 epochs at reduced learning rates
 # opt.lr.set_value(1e-6)
 # dopt.lr.set_value(1e-5)
 # train_for_n(nb_epoch=2000, BATCH_SIZE=1)
-#
-#
-# # Plot some generated vectors from our GAN - TODO
-#
+
+# # Plot some generated vectors from our GAN
+vector_gen(100, input_shape)
