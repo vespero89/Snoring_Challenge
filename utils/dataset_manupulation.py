@@ -207,6 +207,33 @@ def label_organize(label_set,namelist):
     y_set_cat = nputils.to_categorical(y_set_int,nb_classes=4)
     return y_set_cat, y_set_int, y_set
 
+def label_split(label_set,namelist):
+    y_set = []
+    for i in range(len(namelist)):
+        a = path.splitext(namelist[i])[0]
+        for j in range(len(label_set)):
+            b = path.splitext(label_set[j][0])[0]
+            if a == b:
+                sample = [namelist[j], label_set[j][1]]
+                y_set.append(sample)
+
+    y_set_V = []
+    y_set_O = []
+    y_set_T = []
+    y_set_E = []
+
+    for k in y_set:
+        if k[1] == 'V':
+            y_set_V.append(k[0])
+        elif k[1] == 'O':
+            y_set_O.append(k[0])
+        elif k[1] == 'T':
+            y_set_T.append(k[0])
+        elif k[1] == 'E':
+            y_set_E.append(k[0])
+
+    return y_set_V, y_set_O, y_set_T, y_set_E
+
 def dim_to_pad(set_to_pad):
     dim_pad = np.amax([len(k[1][2]) for k in set_to_pad])
     return dim_pad
